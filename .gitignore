@@ -1,0 +1,14 @@
+# Ignore public keys
+roles/deploy_user/files/keys
+
+# Ansible retry files
+*.retry
+
+# custom ansible configuration
+ansible.cfg
+
+# ignore main hosts file. use copy of hosts.example for your platform
+hosts
+
+# ignore hosts file to create / destroy DO droplets
+hosts.digitalocean
