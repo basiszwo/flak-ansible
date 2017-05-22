@@ -1,0 +1,40 @@
+---
+- name: Pull newest code from github
+  remote_user: "{{ deploy_user }}"
+  git:
+    repo: git@github.com:basiszwo/flak-example-api.git
+    accept_hostkey: yes
+    clone: yes
+    dest: "~/flak-example-api"
+  tags: ["install"]
+
+- name: Create config.properties file
+  remote_user: "{{ deploy_user }}"
+  copy:
+    src: "~/flak-example-api/config.properties.example"
+    dest: "~/flak-example-api/config.properties"
+    remote_src: True
+  tags: ["install"]
+
+- name: Update hostnames for kafka brokers
+  remote_user: "{{ deploy_user }}"
+  lineinfile:
+    dest: "~/flak-example-api/config.properties"
+    regexp: "^bootstrap.servers"
+    line: "bootstrap.servers={{ groups['kafka'] | map('regex_replace', '^(.*)$', '\\g<1>' ~ ':9092') | join(',') }}"
+    state: present
+  tags: ["install"]
+
+- name: Build package (can take some minutes ...)
+  remote_user: "{{ deploy_user }}"
+  command: "mvn package"
+  args:
+    chdir: "~/flak-example-api"
+  tags: ["install"]
+
+- name: Start SparkJava API Application
+  remote_user: "{{ deploy_user }}"
+  command: "nohup java -jar ./target/api-1.0-SNAPSHOT-jar-with-dependencies.jar config.properties > ~/api.log &"
+  args:
+    chdir: "~/flak-example-api"
+  tags: ["install", "start"]
