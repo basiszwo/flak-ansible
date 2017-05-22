@@ -1,0 +1,52 @@
+---
+
+- name: Fetch kafka sources
+  remote_user: kafka
+  get_url:
+    url: "{{ kafka_mirror_url }}"
+    dest: "~/{{ kafka_tar }}"
+  tags: ['install']
+
+- name: Extract download
+  remote_user: kafka
+  unarchive:
+    src: "~/{{ kafka_tar }}"
+    dest: ~/
+    remote_src: True
+  tags: ['install']
+
+- name: Rename kafka directory
+  remote_user: kafka
+  command: mv ~/{{ kafka_source_dir}} {{ kafka_home}}
+  ignore_errors: True
+  tags: ['install']
+
+- name: Add kafka broker configuration
+  remote_user: kafka
+  template: src=server.properties.j2
+            dest="{{ kafka_home }}/config/server.properties"
+            owner=kafka
+            group=kafka
+            mode=644
+            force=yes
+  tags: ['install']
+
+- name: Ensure log directory exists
+  file:
+    path: "{{ kafka_log_dir }}"
+    state: directory
+    mode: 0755
+    owner: kafka
+    group: kafka
+  tags: ['install']
+
+- name: Start kafka server (broker)
+  remote_user: kafka
+  command: "{{ kafka_home }}/bin/kafka-server-start.sh -daemon {{ kafka_home }}/config/server.properties"
+  tags: ['install', 'start']
+
+- name: Stop kafka server (broker)
+  remote_user: kafka
+  command: "{{ kafka_home }}/bin/kafka-server-stop.sh"
+  ignore_errors: True
+  tags: ['stop']
