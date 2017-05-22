@@ -1,0 +1,22 @@
+---
+- name: Install Zookeeper
+  apt:  pkg=zookeeperd state=installed
+  tags: ['install']
+
+- name: Add zookeeper config
+  template: src=zoo.cfg.j2
+            dest="/etc/zookeeper/conf/zoo.cfg"
+            force=yes
+  tags: ['install']
+
+- name: Add log4j config
+  template:
+    src: log4j.properties.j2
+    dest: "/etc/zookeeper/conf/log4j.properties"
+  tags: ['install']
+
+- name: Configure myid
+  template:
+    src: myid.j2
+    dest: "/etc/zookeeper/conf/myid"
+  tags: ['install']
