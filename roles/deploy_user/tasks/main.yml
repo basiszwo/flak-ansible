@@ -1,0 +1,16 @@
+---
+- name: Add the deploy user
+  user: name={{ deploy_user }}
+        home=/home/{{ deploy_user }}
+        shell=/bin/bash
+        comment="Deploy User"
+  tags: ['install']
+
+- name: Set up multiple authorized keys
+  authorized_key:
+    user: "{{ deploy_user }}"
+    state: present
+    key: https://github.com/{{ item }}.keys
+  with_items:
+    - "{{ ssh_users }}"
+  tags: ['install']

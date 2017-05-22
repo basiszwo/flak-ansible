@@ -1,0 +1,62 @@
+---
+
+- name: Check for swapfile
+  command: swapon -s | grep '\/swapfile'
+  register: swap_exists
+  tags: ['install']
+
+- name: Create the swapfile
+  # command: dd if=/dev/zero of=/swapfile bs=1024 count=512k
+  command: fallocate -l {{ swap_size }} /swapfile
+  when: swap_exists.stdout.find('swapfile') == -1
+  tags: ['install']
+
+- name: Change file permissions
+  file:
+    path: "/swapfile"
+    mode: 0600
+  when: swap_exists.stdout.find('swapfile') == -1
+  tags: ['install']
+
+- name: Create linux swap area
+  command: mkswap /swapfile
+  when: swap_exists.stdout.find('swapfile') == -1
+  tags: ['install']
+
+- name: Mount swapfile
+  command: swapon /swapfile
+  when: swap_exists.stdout.find('swapfile') == -1
+  tags: ['install']
+
+- name: Permanently add swap area
+  lineinfile: dest=/etc/fstab
+              regexp="^\/swapfile"
+              line="/swapfile       none    swap    sw      0       0 "
+  when: swap_exists.stdout.find('swapfile') == -1
+  tags: ['install']
+
+# Taken from https://www.digitalocean.com/community/tutorials/how-to-add-swap-on-ubuntu-14-04
+
+- name: Tweak swappiness
+  command: sysctl vm.swappiness=10
+  when: swap_exists.stdout.find('swapfile') == -1
+  tags: ['install']
+
+- name: Persist swappiness tweak
+  lineinfile: dest=/etc/sysctl.conf
+              regexp="^vm\.swappiness"
+              line="vm.swappiness=10"
+  when: swap_exists.stdout.find('swapfile') == -1
+  tags: ['install']
+
+- name: Tweak inode cache behaviour
+  command: sysctl vm.vfs_cache_pressure=50
+  when: swap_exists.stdout.find('swapfile') == -1
+  tags: ['install']
+
+- name: Persist inode cache behaviour tweak
+  lineinfile: dest=/etc/sysctl.conf
+              regexp="^vm\.vfs_cache_pressure"
+              line="vm.vfs_cache_pressure = 50"
+  when: swap_exists.stdout.find('swapfile') == -1
+  tags: ['install']

@@ -1,0 +1,26 @@
+---
+- name: Update cache
+  apt:  update_cache=yes
+  tags: ['install']
+
+- name: Update timezone to Europe/Berlin
+  copy: src=timezone
+        dest=/etc/timezone
+  tags: ['install']
+
+- name: Update localtime configuration
+  command: "{{ item }}"
+  with_items:
+    - "mv /etc/localtime /etc/localtime.old"
+    - "ln -sf /usr/share/zoneinfo/Europe/Berlin /etc/localtime"
+  tags: ['install']
+
+- name: Install basic packages
+  apt:  pkg=ntp state=installed
+  tags: ['install']
+
+- name: Set ntp.conf
+  copy: src=ntp.conf
+        dest=/etc/ntp.conf
+  notify: Restart ntp
+  tags: ['install']

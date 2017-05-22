@@ -1,0 +1,29 @@
+---
+- name: Upgrade apt packages
+  apt:  update_cache=yes upgrade=yes
+  ignore_errors: True
+  tags: ['install']
+
+- name: Install basic packages
+  apt:  pkg={{item}} state=installed
+  with_items:
+    - aptitude
+    - autoconf
+    - automake
+    - build-essential
+    - curl
+    - dstat
+    - git-core
+    - pkg-config
+    - python-software-properties
+    - tree
+    - vim
+    - resolvconf
+    - landscape-common
+    - default-jre
+    - unzip
+  tags: ['install']
+
+- name: Generate locale de_DE
+  command: locale-gen de_DE.UTF-8
+  tags: ['install']

@@ -1,0 +1,6 @@
+---
+deploy_user: deploy
+
+# add github usernames
+ssh_users:
+  - basiszwo
