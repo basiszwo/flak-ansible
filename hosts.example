@@ -1,0 +1,55 @@
+[all:children]
+api
+kafka
+flink
+accumulo
+
+[api]
+api-1.flak.one do_size_id=1gb
+# api-2.flak.one do_size_id=512mb
+
+
+# there is no real master but this one is used to e.g. create the topic
+[kafka-master]
+kafka-1.flak.one
+
+[kafka]
+kafka-1.flak.one do_size_id=512mb
+kafka-2.flak.one do_size_id=512mb
+kafka-3.flak.one do_size_id=512mb
+
+# currently zookeepers run on the kafka hosts
+[zookeeper-kafka]
+kafka-1.flak.one do_size_id=512mb
+kafka-2.flak.one do_size_id=512mb
+kafka-3.flak.one do_size_id=512mb
+
+
+[flink:children]
+jobmanager
+taskmanagers
+
+# the current setup is for exactly one jobmanager as we are not running in high-availablity mode
+[jobmanager]
+flink-jm.flak.one do_size_id=512mb
+
+[taskmanagers]
+flink-tm-1.flak.one do_size_id=512mb
+flink-tm-2.flak.one do_size_id=512mb
+
+[accumulo:children]
+accumulo-master
+accumulo-tablet-server
+
+[accumulo-master]
+accumulo-1.flak.one do_size_id=2gb
+
+[accumulo-tablet-server]
+accumulo-2.flak.one do_size_id=2gb
+accumulo-3.flak.one do_size_id=2gb
+
+# currently zookeepers run on the accumulo hosts
+[zookeeper-accumulo]
+accumulo-1.flak.one do_size_id=2gb
+accumulo-2.flak.one do_size_id=2gb
+accumulo-3.flak.one do_size_id=2gb
