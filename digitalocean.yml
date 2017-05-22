@@ -1,0 +1,14 @@
+---
+- name: Digital Ocean Droplet Management
+  gather_facts: no
+  hosts: digitalocean
+
+  vars:
+    # do_ssh_key_id and do_api_token are passed via hosts file
+    do_region_id: fra1
+    do_size_id: 512mb
+    do_image_id: ubuntu-16-04-x64
+    do_hosts: "{{ groups[custom_host_group | default('all')] }}"
+
+  roles:
+    - role: digitalocean

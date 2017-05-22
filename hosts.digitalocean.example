@@ -1,0 +1,2 @@
+[digitalocean]
+localhost ansible_connection=local ansible_python_interpreter=python do_ssh_key_id=<DigitalOcean ssh key id> do_api_token=<DigitalOcean api token>

@@ -1,0 +1,70 @@
+---
+- name: Ramp up droplets
+  digital_ocean:
+    state: present
+    command: droplet
+    name: "{{ item }}"
+    api_token: "{{ do_api_token }}"
+    size_id: "{{ do_size_id }}"
+    region_id: "{{ do_region_id }}"
+    image_id: "{{ do_image_id }}"
+    wait_timeout: 500
+    unique_name: yes
+    private_networking: yes
+    ssh_key_ids: "{{ do_ssh_key_id }}"
+  register: droplet_details
+  with_items:
+    - "{{ do_hosts }}"
+  tags: ['start']
+
+# - name: Install new DigitalOcean monitoring agent
+#   command: curl -sSL https://agent.digitalocean.com/install.sh | sh
+#   tags: ['start']
+
+- name: "Add entry /etc/hosts on localhost"
+  become: yes
+  become_user: root
+  lineinfile:
+    dest: /etc/hosts
+    regexp: "{{ item.droplet.name }}$"
+    line: "{{ item.droplet.networks.v4[1].ip_address }} {{ item.droplet.name }}"
+    state: present
+  with_items:
+    - "{{ droplet_details.results }}"
+  tags: ['start']
+
+- debug: msg="Started droplet {{ item.droplet.name }} => {{ item.droplet.networks.v4[1].ip_address }}"
+  with_items: "{{ droplet_details.results }}"
+  tags: ['start']
+
+- name: Tear down platform
+  digital_ocean:
+    state: absent
+    command: droplet
+    name: "{{ item }}"
+    api_token: "{{ do_api_token }}"
+    wait_timeout: 500
+    unique_name: yes
+  register: droplet_details
+  with_items:
+    - "{{ do_hosts }}"
+  tags: ['stop']
+
+- debug: msg="DROPLET DETAILS - {{ droplet_details }}"
+  tags: ['stop']
+
+# - debug: msg="Stopped droplet {{ item.droplet.name }} => {{ item.droplet.networks.v4[1].ip_address }}"
+#   with_items: "{{ droplet_details.results }}"
+#   tags: ['stop']
+
+- name: "Remove entry to /etc/hosts on localhost"
+  become: yes
+  become_user: root
+  lineinfile:
+    dest: /etc/hosts
+    regexp: "{{ item }}$"
+    line: "# {{ item }}"
+    state: present
+  with_items:
+    - "{{ do_hosts }}"
+  tags: ['stop']
