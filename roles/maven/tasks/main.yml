@@ -1,0 +1,11 @@
+---
+- name: Ensure maven is installed
+  apt:
+    package: "{{ item }}"
+    state: present
+    update_cache: yes
+    install_recommends: yes
+  with_items:
+    - default-jdk
+    - maven
+  tags: ["install"]
