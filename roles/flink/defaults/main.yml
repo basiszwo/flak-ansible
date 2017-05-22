@@ -1,0 +1,14 @@
+---
+flink_version: "1.2.1"
+flink_scala_version: "2.11"
+flink_hadoop_version: "27"
+
+flink_installation_dir: "/home/{{ deploy_user }}"
+flink_home: "{{ flink_installation_dir}}/flink-{{ flink_version }}"
+
+flink_source_dir: "flink-{{ flink_version }}-bin-hadoop{{ flink_hadoop_version }}-scala_{{ flink_scala_version }}"
+flink_tar: "{{ flink_source_dir }}.tgz"
+
+flink_download_url: "http://mirror.dkd.de/apache/flink/flink-{{ flink_version }}/{{ flink_tar }}"
+
+flink_log_dir: "/var/log/flink"

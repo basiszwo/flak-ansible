@@ -1,0 +1,69 @@
+---
+- name: Fetch flink sources
+  remote_user: "{{ deploy_user }}"
+  get_url:
+    url: "{{ flink_download_url }}"
+    dest: "~/{{ flink_tar }}"
+  tags: ['install']
+
+- name: Extract download
+  remote_user: "{{ deploy_user }}"
+  unarchive:
+    src: "~/{{ flink_tar }}"
+    dest: ~/
+    remote_src: True
+  tags: ['install']
+
+- name: Add flink master configuration
+  remote_user: "{{ deploy_user }}"
+  template: src=flink-conf.yaml.j2
+            dest="{{ flink_home }}/conf/flink-conf.yaml"
+            owner={{ deploy_user }}
+            group={{ deploy_user }}
+            mode=644
+            force=yes
+  tags: ['install']
+
+- name: Add flink slaves configuration
+  remote_user: "{{ deploy_user }}"
+  template: src=slaves.j2
+            dest="{{ flink_home }}/conf/slaves"
+            owner={{ deploy_user }}
+            group={{ deploy_user }}
+            mode=644
+            force=yes
+  tags: ['install']
+
+- name: Ensure log directory exists
+  file:
+    path: "{{ flink_log_dir }}"
+    state: directory
+    mode: 0755
+    owner: "{{ deploy_user }}"
+    group: "{{ deploy_user }}"
+  tags: ['install']
+
+- name: Start flink jobmanager (master)
+  remote_user: "{{ deploy_user }}"
+  command: "{{ flink_home }}/bin/jobmanager.sh start cluster"
+  when: inventory_hostname in groups['jobmanager']
+  tags: ['install', 'start']
+
+- name: Start flink taskmanager (slaves)
+  remote_user: "{{ deploy_user }}"
+  command: "{{ flink_home }}/bin/taskmanager.sh start"
+  when: inventory_hostname in groups['taskmanagers']
+  tags: ['install', 'start']
+
+# - name: Start flink cluster
+#   remote_user: "{{ deploy_user }}"
+#   command: "{{ flink_home }}/bin/start-cluster.sh"
+#   when: inventory_hostname == 'flink-master.flak.one'
+#   tags: ['install', 'start']
+#
+# - name: Stop flink server (broker)
+#   remote_user: "{{ deploy_user }}"
+#   command: "{{ flink_home }}/bin/stop-cluster.sh"
+#   ignore_errors: True
+#   when: inventory_hostname == 'flink-master.flak.one'
+#   tags: ['stop']
