@@ -21,5 +21,6 @@
     - { role: base }
     - { role: swap-space }
     - { role: ntp }
+    - { role: ssh }
     - { role: deploy_user }
     - { role: flink }
