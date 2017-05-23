@@ -25,20 +25,5 @@
     - { role: swap-space }
     - { role: ntp }
     - { role: deploy_user }
-    - { role: zookeeper, tags: ['install', 'zookeeper'] }
-    - { role: kafka }
-
-# - name: Create kafka topic
-#   hosts: kafka-master
-#   remote_user: kafka
-#   gather_facts: no
-#
-#   vars:
-#     deploy_user: kafka
-#
-#
-#   tasks:
-#     - include_vars: 'roles/kafka/defaults/main.yml'
-#     - name: Create topic
-#       command: "{{ kafka_home }}/bin/kafka-topics.sh --create --zookeeper localhost:2181 --replication-factor 3 --partitions 1 --topic {{ kafka_topic_name }}"
-#       tags: ['install', 'topic']
+    - { role: zookeeper, tags: ['zookeeper'] }
+    - { role: kafka, tags: ['kafka'] }
