@@ -1,5 +1,5 @@
 {% for host in groups[zookeeper_hosts_group] %}
-{% if hostvars[host]['ansible_nodename'] == ansible_hostname %}
-{{loop.index}}
+{% if host == inventory_hostname %}
+{{ loop.index }}
 {% endif %}
 {% endfor %}

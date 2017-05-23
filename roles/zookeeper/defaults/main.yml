@@ -1,4 +1,12 @@
 ---
+
+zookeeper_version: "3.4.9"
+zookeeper_source_dir: "zookeeper-{{ zookeeper_version }}"
+zookeeper_installation_dir: "/home/{{ deploy_user }}"
+zookeeper_home: "{{ zookeeper_installation_dir}}/{{ zookeeper_source_dir }}"
+zookeeper_tar: "{{ zookeeper_source_dir }}.tar.gz"
+zookeeper_mirror_url: "http://apache.lauf-forum.at/zookeeper/zookeeper-{{ zookeeper_version }}/{{ zookeeper_tar }}"
+
 zookeeper_data_dir: '/var/lib/zookeeper'
 zookeeper_log_dir: '/var/log/zookeeper'
 zookeeper_hosts_group: zookeeper-kafka

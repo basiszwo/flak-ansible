@@ -1,22 +1,66 @@
 ---
-- name: Install Zookeeper
-  apt:  pkg=zookeeperd state=installed
+
+- name: Fetch zookeeper sources
+  remote_user: "{{ deploy_user }}"
+  get_url:
+    url: "{{ zookeeper_mirror_url }}"
+    dest: "~/{{ zookeeper_tar }}"
+  tags: ['install']
+
+- name: Extract download
+  remote_user: "{{ deploy_user }}"
+  unarchive:
+    src: "~/{{ zookeeper_tar }}"
+    dest: ~/
+    remote_src: True
   tags: ['install']
 
 - name: Add zookeeper config
+  remote_user: "{{ deploy_user }}"
   template: src=zoo.cfg.j2
-            dest="/etc/zookeeper/conf/zoo.cfg"
+            dest="{{ zookeeper_home }}/conf/zoo.cfg"
             force=yes
   tags: ['install']
 
 - name: Add log4j config
+  remote_user: "{{ deploy_user }}"
   template:
     src: log4j.properties.j2
-    dest: "/etc/zookeeper/conf/log4j.properties"
+    dest: "{{ zookeeper_home }}/conf/log4j.properties"
+  tags: ['install']
+
+- name: Ensure data dir exists
+  file:
+    path: "{{ zookeeper_data_dir }}"
+    state: directory
+    mode: 0755
+    owner: "{{ deploy_user }}"
+    group: "{{ deploy_user }}"
   tags: ['install']
 
 - name: Configure myid
+  remote_user: "{{ deploy_user }}"
   template:
     src: myid.j2
-    dest: "/etc/zookeeper/conf/myid"
+    dest: "{{ zookeeper_data_dir }}/myid"
   tags: ['install']
+
+- name: Start zookeeper
+  remote_user: "{{ deploy_user }}"
+  command: "{{ zookeeper_home }}/bin/zkServer.sh start {{ zookeeper_home }}/conf/zoo.cfg"
+  tags: ['install', 'start']
+
+- name: Stop zookeeper
+  remote_user: "{{ deploy_user }}"
+  command: "{{ zookeeper_home }}/bin/zkServer.sh stop"
+  tags: ['stop']
+
+- name: Restart zookeeper
+  remote_user: "{{ deploy_user }}"
+  command: "{{ zookeeper_home }}/bin/zkServer.sh restart"
+  tags: ['restart']
+
+# - name: Fetch zookeeper status
+#   remote_user: "{{ deploy_user }}"
+#   command: "{{ zookeeper_home }}/bin/zkServer.sh status"
+#   tags: ['status']
