@@ -1,14 +1,14 @@
 ---
 
 - name: Fetch kafka sources
-  remote_user: kafka
+  remote_user: "{{ deploy_user }}"
   get_url:
     url: "{{ kafka_mirror_url }}"
     dest: "~/{{ kafka_tar }}"
   tags: ['install']
 
 - name: Extract download
-  remote_user: kafka
+  remote_user: "{{ deploy_user }}"
   unarchive:
     src: "~/{{ kafka_tar }}"
     dest: ~/
@@ -16,17 +16,17 @@
   tags: ['install']
 
 - name: Rename kafka directory
-  remote_user: kafka
+  remote_user: "{{ deploy_user }}"
   command: mv ~/{{ kafka_source_dir}} {{ kafka_home}}
   ignore_errors: True
   tags: ['install']
 
 - name: Add kafka broker configuration
-  remote_user: kafka
+  remote_user: "{{ deploy_user }}"
   template: src=server.properties.j2
             dest="{{ kafka_home }}/config/server.properties"
-            owner=kafka
-            group=kafka
+            owner="{{ deploy_user }}"
+            group="{{ deploy_user }}"
             mode=644
             force=yes
   tags: ['install']
@@ -36,17 +36,22 @@
     path: "{{ kafka_log_dir }}"
     state: directory
     mode: 0755
-    owner: kafka
-    group: kafka
+    owner: "{{ deploy_user }}"
+    group: "{{ deploy_user }}"
   tags: ['install']
 
 - name: Start kafka server (broker)
-  remote_user: kafka
+  remote_user: "{{ deploy_user }}"
   command: "{{ kafka_home }}/bin/kafka-server-start.sh -daemon {{ kafka_home }}/config/server.properties"
   tags: ['install', 'start']
 
 - name: Stop kafka server (broker)
-  remote_user: kafka
+  remote_user: "{{ deploy_user }}"
   command: "{{ kafka_home }}/bin/kafka-server-stop.sh"
   ignore_errors: True
   tags: ['stop']
+
+- name: Create topic
+  remote_user: "{{ deploy_user }}"
+  command: "{{ kafka_home }}/bin/kafka-topics.sh --create --zookeeper localhost:2181 --replication-factor 3 --partitions 3 --topic {{ kafka_topic_name }}"
+  tags: ['install', 'create-topic']
