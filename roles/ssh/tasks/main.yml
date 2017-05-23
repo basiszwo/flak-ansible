@@ -8,5 +8,4 @@
 
 - name: Update bash to prevent Shellshock bug
   apt: pkg=bash state=latest update_cache=yes
-  tags: shellshock
   tags: ['install']
