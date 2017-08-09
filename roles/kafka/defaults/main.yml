@@ -1,5 +1,5 @@
 ---
-kafka_version: "0.10.2.0"
+kafka_version: "0.11.0.0"
 kafka_scala_version: "2.11"
 kafka_source_dir: "kafka_{{ kafka_scala_version }}-{{ kafka_version }}"
 kafka_installation_dir: "/home/{{ deploy_user }}"
