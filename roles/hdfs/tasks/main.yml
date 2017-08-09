@@ -1,0 +1,135 @@
+---
+- name: Check if hadoop is already installed
+  remote_user: "{{ deploy_user }}"
+  stat:
+    path: "{{ hdfs_home }}"
+  register: hdfs_exists
+  tags: ['install']
+
+- name: Fetch hdfs sources
+  remote_user: "{{ deploy_user }}"
+  get_url:
+    url: "{{ hdfs_download_url }}"
+    dest: "~/{{ hdfs_tar }}"
+  when: hdfs_exists.stat.exists == False
+  tags: ['install']
+
+- name: Extract download
+  remote_user: "{{ deploy_user }}"
+  unarchive:
+    src: "~/{{ hdfs_tar }}"
+    dest: ~/
+    remote_src: True
+  when: hdfs_exists.stat.exists == False
+  tags: ['install']
+
+- name: Add hdfs env config
+  remote_user: "{{ deploy_user }}"
+  template: src=hadoop-env.sh.j2
+            dest="{{ hdfs_home }}/etc/hadoop/hadoop-env.sh"
+            owner="{{ deploy_user }}"
+            group="{{ deploy_user }}"
+            mode=755
+            force=yes
+  tags: ['install']
+
+- name: Add hdfs config
+  remote_user: "{{ deploy_user }}"
+  template: src="{{ item }}.j2"
+            dest="{{ hdfs_home }}/etc/hadoop/{{ item }}"
+            owner="{{ deploy_user }}"
+            group="{{ deploy_user }}"
+            mode=644
+            force=yes
+  with_items:
+    - core-site.xml
+    - hdfs-site.xml
+    - mapred-site.xml
+  tags: ['install']
+
+- name: Add hdfs cluster config
+  remote_user: "{{ deploy_user }}"
+  template: src="{{ item }}.j2"
+            dest="{{ hdfs_home }}/etc/hadoop/{{ item }}"
+            owner="{{ deploy_user }}"
+            group="{{ deploy_user }}"
+            mode=644
+            force=yes
+  with_items:
+    - masters
+    - slaves
+  tags: ['install']
+
+# PASSWORDLESS SSH : extract to role
+
+- name: Check if ssh key is present
+  remote_user: "{{ deploy_user }}"
+  stat:
+    path: "~/.ssh/id_rsa"
+  register: ssh_key_exists
+  tags: ['install']
+
+- name: Copy custom ssh config
+  remote_user: "{{ deploy_user }}"
+  template: src="ssh_config.j2"
+            dest="~/.ssh/config"
+            owner="{{ deploy_user }}"
+            group="{{ deploy_user }}"
+            mode=644
+            force=yes
+  tags: ['install']
+
+# - name: Remove existing ssh key
+#   remote_user: "{{ deploy_user }}"
+#   file:
+#     path: "~/.ssh/id_rsa"
+#     state: absent
+#   tags: ['install']
+#
+# - name: Remove existing ssh pub key
+#   remote_user: "{{ deploy_user }}"
+#   file:
+#     path: "~/.ssh/id_rsa.pub"
+#     state: absent
+#   tags: ['install']
+
+- name: Generate ssh key on hadoop master
+  remote_user: "{{ deploy_user }}"
+  shell: ssh-keygen -t rsa -P "" -f ~/.ssh/id_rsa
+  when: inventory_hostname == groups['hdfs-masters'][0] and hdfs_exists.stat.exists == False
+  tags: ['install']
+
+- name: Copy ssh key from hadoop master to slaves
+  remote_user: "{{ deploy_user }}"
+  shell: "ssh-copy-id -i $HOME/.ssh/id_rsa.pub -o StrictHostKeyChecking=no {{ deploy_user }}@{{ item }}"
+  with_items: "{{ groups['hdfs-slaves'] }}"
+  when: inventory_hostname == groups['hdfs-masters'][0]
+  tags: ['install']
+
+- name: Copy ssh key from hadoop master to itself
+  remote_user: "{{ deploy_user }}"
+  shell: "cat ~/.ssh/id_rsa.pub >> ~/.ssh/authorized_keys"
+  when: inventory_hostname == groups['hdfs-masters'][0]
+  tags: ['install']
+
+# END PASSWORDLESS SSH
+
+# - name: Initialize hadoop filesystem
+#   remote_user: "{{ deploy_user }}"
+#   shell: "{{ hdfs_home }}/bin/hdfs namenode -format"
+#   args:
+#     chdir: "{{ hdfs_home }}"
+#   when: inventory_hostname == groups['hdfs-masters'][0]
+#   tags: ['install']
+
+- name: Start hadoop filesystem
+  remote_user: "{{ deploy_user }}"
+  shell: "{{ hdfs_home }}/sbin/start-dfs.sh"
+  when: inventory_hostname == groups['hdfs-masters'][0]
+  tags: ['install', 'start']
+
+- name: Stop hadoop filesystem
+  remote_user: "{{ deploy_user }}"
+  shell: "{{ hdfs_home }}/sbin/stop-dfs.sh"
+  when: inventory_hostname == groups['hdfs-masters'][0]
+  tags: ['stop']

@@ -1,0 +1,12 @@
+---
+hdfs_hadoop_version: "2.7.3"
+
+hdfs_installation_dir: "/home/{{ deploy_user }}"
+hdfs_home: "{{ hdfs_installation_dir}}/hadoop-{{ hdfs_hadoop_version }}"
+
+hdfs_source_dir: "hadoop-{{ hdfs_hadoop_version }}"
+hdfs_tar: "{{ hdfs_source_dir }}.tar.gz"
+
+hdfs_download_url: "http://www.eu.apache.org/dist/hadoop/common/hadoop-{{ hdfs_hadoop_version }}/{{ hdfs_tar }}"
+
+hdfs_log_dir: "/var/log/hdfs"
