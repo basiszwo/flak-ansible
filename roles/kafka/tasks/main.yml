@@ -1,10 +1,18 @@
 ---
 
+- name: Check if kafka is already installed
+  remote_user: "{{ deploy_user }}"
+  stat:
+    path: "{{ kafka_home }}"
+  register: kafka_exists
+  tags: ['install']
+
 - name: Fetch kafka sources
   remote_user: "{{ deploy_user }}"
   get_url:
     url: "{{ kafka_mirror_url }}"
     dest: "~/{{ kafka_tar }}"
+  when: kafka_exists.stat.exists == False
   tags: ['install']
 
 - name: Extract download
@@ -13,6 +21,7 @@
     src: "~/{{ kafka_tar }}"
     dest: ~/
     remote_src: True
+  when: kafka_exists.stat.exists == False
   tags: ['install']
 
 - name: Rename kafka directory
@@ -53,5 +62,6 @@
 
 - name: Create topic
   remote_user: "{{ deploy_user }}"
-  command: "{{ kafka_home }}/bin/kafka-topics.sh --create --zookeeper localhost:2181 --replication-factor 3 --partitions 3 --topic {{ kafka_topic_name }}"
+  command: "{{ kafka_home }}/bin/kafka-topics.sh --create --zookeeper localhost:2181 --replication-factor 1 --partitions 3 --topic {{ kafka_topic_name }}"
+  when: inventory_hostname == groups['kafka'][0] # we only need to create the topic once
   tags: ['install', 'create-topic']
