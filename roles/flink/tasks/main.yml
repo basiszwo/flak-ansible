@@ -1,9 +1,18 @@
 ---
+
+- name: Check if flink is already installed
+  remote_user: "{{ deploy_user }}"
+  stat:
+    path: "{{ flink_home }}"
+  register: flink_exists
+  tags: ['install']
+
 - name: Fetch flink sources
   remote_user: "{{ deploy_user }}"
   get_url:
     url: "{{ flink_download_url }}"
     dest: "~/{{ flink_tar }}"
+  when: flink_exists.stat.exists == False
   tags: ['install']
 
 - name: Extract download
@@ -12,12 +21,23 @@
     src: "~/{{ flink_tar }}"
     dest: ~/
     remote_src: True
+  when: flink_exists.stat.exists == False
   tags: ['install']
 
 - name: Add flink master configuration
   remote_user: "{{ deploy_user }}"
   template: src=flink-conf.yaml.j2
             dest="{{ flink_home }}/conf/flink-conf.yaml"
+            owner={{ deploy_user }}
+            group={{ deploy_user }}
+            mode=644
+            force=yes
+  tags: ['install']
+
+- name: Add flink masters configuration
+  remote_user: "{{ deploy_user }}"
+  template: src=masters.j2
+            dest="{{ flink_home }}/conf/masters"
             owner={{ deploy_user }}
             group={{ deploy_user }}
             mode=644
