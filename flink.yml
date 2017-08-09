@@ -17,10 +17,18 @@
   vars:
     deploy_user: flink
 
+    # used by telegraf / influxdb
+    telegraf_enabled: true
+    telegraf_influxdb_host: http://138.68.74.62:8086
+    telegraf_node_type: kafka
+    telegraf_influx_username: flak
+    telegraf_influx_password: 2Y27VT39o8dnHk7oRBNv4En7jCAvhVDnavFnqoQ2
+
   roles:
     - { role: base }
     - { role: swap-space }
     - { role: ntp }
     - { role: ssh }
     - { role: deploy_user }
+    - { role: telegraf }
     - { role: flink }
