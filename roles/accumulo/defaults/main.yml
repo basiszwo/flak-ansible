@@ -1,0 +1,39 @@
+---
+accumulo_version: "1.8.1"
+
+accumulo_installation_dir: "/home/{{ deploy_user }}"
+accumulo_home: "{{ accumulo_installation_dir}}/accumulo-{{ accumulo_version }}"
+
+accumulo_source_dir: "accumulo-{{ accumulo_version }}"
+accumulo_tar: "{{ accumulo_source_dir }}.tar.gz"
+
+accumulo_download_url: "http://mirror.netcologne.de/apache.org/accumulo/{{ accumulo_version }}/accumulo-{{ accumulo_version }}-bin.tar.gz"
+
+# turn an array of hosts to a comma separated string of hosts
+# [host1, host2] => "host1:2181,host2:2181"
+# zookeeper_hosts: "{{ ','.join([host + ':2181' for host in play_hosts]) }}"
+# accumulo_zookeeper_hosts: "{{ groups[zookeeper_hosts_group] | map('regex_replace', '^(.*)$', hostvars['\\g<1>']['ansible_default_ipv4']['address'] ~ ':2181') | join(',') }}"
+accumulo_zookeeper_hosts: "{{ groups[zookeeper_hosts_group] | map('regex_replace', '^(.*)$', '\\g<1>:2181') | join(',') }}"
+
+# comma separated list of hdfs nodes
+# accumulo_hdfs_volumes: hdfs://localhost:9000/accumulo
+
+# password shared between accumulo instances
+accumulo_instance_name: flakone
+accumulo_instance_secret: Kop6Uggwib3EkGxX3akpbnL4Q27yU2Mn3g3QeEKLGTLDsjM6Nv
+
+# accumulo credentials to init database
+accumulo_root_username: root
+accumulo_root_password: n7ZJu2CmDb6AR3QN2bC3Jb7ENRjkrFHMoTU88XoG7idEHLijWE
+
+# ubuntu 16.04 provides a symlink to the java installation
+java_home: /usr/lib/jvm/default-java
+
+# zookeeper home is provided by zookeeper role
+# zookeeper_home: /path/to/zookeeper/jar
+
+# hadoop home is provided by hdfs role
+hadoop_home: "{{ hdfs_home }}"
+
+# this will deploy different jvm configs; either 512MB, 1GB or 2GB
+tserver_memory_size: 512MB

@@ -1,0 +1,107 @@
+---
+
+- name: Check if accumulo is already installed
+  remote_user: "{{ deploy_user }}"
+  stat:
+    path: "{{ accumulo_home }}"
+  register: accumulo_exists
+  tags: ['install']
+
+- name: Fetch accumulo sources
+  remote_user: "{{ deploy_user }}"
+  get_url:
+    url: "{{ accumulo_download_url }}"
+    dest: "~/{{ accumulo_tar }}"
+  when: accumulo_exists.stat.exists == False
+  tags: ['install']
+
+- name: Extract download
+  remote_user: "{{ deploy_user }}"
+  unarchive:
+    src: "~/{{ accumulo_tar }}"
+    dest: ~/
+    remote_src: True
+  when: accumulo_exists.stat.exists == False
+  tags: ['install']
+
+- name: Add accumulo environment setup
+  remote_user: "{{ deploy_user }}"
+  template: src={{ item }}.{{ tserver_memory_size }}.j2
+            dest="{{ accumulo_home }}/conf/{{ item }}"
+            owner="{{ deploy_user }}"
+            group="{{ deploy_user }}"
+            mode=755
+            force=yes
+  with_items:
+    - accumulo-env.sh
+  tags: ['install']
+#
+- name: Copy accumulo site config
+  remote_user: "{{ deploy_user }}"
+  template: src="{{ item }}.{{ tserver_memory_size }}.j2"
+            dest="{{ accumulo_home }}/conf/{{ item }}"
+            owner="{{ deploy_user }}"
+            group="{{ deploy_user }}"
+            mode=644
+            force=yes
+  with_items:
+    - accumulo-site.xml
+  tags: ['install']
+
+- name: Copy accumulo config files
+  remote_user: "{{ deploy_user }}"
+  template: src="{{ item }}.j2"
+            dest="{{ accumulo_home }}/conf/{{ item }}"
+            owner="{{ deploy_user }}"
+            group="{{ deploy_user }}"
+            mode=644
+            force=yes
+  with_items:
+    - accumulo-metrics.xml
+    - accumulo.policy.example
+    - auditLog.xml
+    - client.conf
+    - generic_logger.properties
+    - generic_logger.xml
+    - hadoop-metrics2-accumulo.properties
+    - log4j.properties
+    - monitor_logger.properties
+    - monitor_logger.xml
+  tags: ['install']
+
+- name: Copy accumulo nodes configuration
+  remote_user: "{{ deploy_user }}"
+  template: src="{{ item }}.j2"
+            dest="{{ accumulo_home }}/conf/{{ item }}"
+            owner="{{ deploy_user }}"
+            group="{{ deploy_user }}"
+            mode=644
+            force=yes
+  with_items:
+    - gc
+    - masters
+    - monitor
+    - slaves
+    - tracers
+  tags: ['install']
+
+
+# - name: Initialize accumulo filesystem
+#   remote_user: "{{ deploy_user }}"
+#   command: "{{ accumulo_home }}/bin/accumulo init --instance-name {{ accumulo_instance_name }} --user {{ accumulo_root_username }} --password {{ accumulo_root_password }}"
+#   args:
+#     chdir: "{{ accumulo_home }}"
+#   when: inventory_hostname == groups['accumulo-masters'][0]
+#   tags: ['install']
+
+# - name: Start accumulo cluster
+#   remote_user: "{{ deploy_user }}"
+#   command: "{{ accumulo_home }}/bin/start-all.sh"
+#   when: inventory_hostname == groups['accumulo-masters'][0]
+#   tags: ['install', 'start']
+#
+# - name: Stop accumulo cluster
+#   remote_user: "{{ deploy_user }}"
+#   command: "{{ accumulo_home }}/bin/stop-all.sh"
+#   when: inventory_hostname == groups['accumulo-masters'][0]
+#   tags: ['stop']
