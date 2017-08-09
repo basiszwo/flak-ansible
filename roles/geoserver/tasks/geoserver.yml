@@ -1,0 +1,35 @@
+---
+- name: Fetch geoserver sources
+  remote_user: "{{ deploy_user }}"
+  get_url:
+    url: "{{ geoserver_release_url }}"
+    dest: "~/{{ geoserver_source_zip }}"
+  tags: ['install']
+
+- name: Extract download
+  remote_user: "{{ deploy_user }}"
+  unarchive:
+    src: "~/{{ geoserver_source_zip }}"
+    dest: "~/"
+    remote_src: True
+  tags: ['install']
+
+- name: Export env var for geoserver home
+  lineinfile:
+    dest: /etc/environment
+    regexp: "^GEOSERVER_HOME"
+    line: "GEOSERVER_HOME={{geoserver_home}}"
+    state: present
+  tags: ['install']
+
+# Start GeoServer manually or install with Tomcat etc.
+# http://docs.geoserver.org/stable/en/user/production/linuxscript.html#debian-ubuntu
+
+# - name: Start GeoServer
+#   remote_user: "{{ deploy_user }}"
+#   shell: "{{ geoserver_home }}/bin/startup.sh"
+#   environment:
+#     # GeoServer installation says to set this env var
+#     # we'll try using it for starting geoserver
+#     GEOSERVER_HOME: "{{ geoserver_home }}"
+#   tags: ['install', 'start']

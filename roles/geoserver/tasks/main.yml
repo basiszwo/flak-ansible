@@ -1,0 +1,5 @@
+---
+# we only want to install GeoServer on the hostnames that are specified
+# while running GeoServer next to Geomesa and Accumulo
+- include: ./geoserver.yml
+  when: inventory_hostname in groups['geoserver']

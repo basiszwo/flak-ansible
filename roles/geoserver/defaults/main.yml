@@ -1,0 +1,14 @@
+---
+
+# recommended on geomesa website
+# geoserver_version: "2.9.1"
+# geotools_version: "15.1"
+
+geoserver_version: "2.11.2"
+
+geoserver_installation_dir: "/home/{{ deploy_user }}"
+geoserver_source_dir: "geoserver-{{ geoserver_version }}"
+geoserver_home: "{{ geoserver_installation_dir}}/{{ geoserver_source_dir }}"
+
+geoserver_source_zip: "{{ geoserver_source_dir }}-bin.zip"
+geoserver_release_url: "http://sourceforge.net/projects/geoserver/files/GeoServer/{{ geoserver_version }}/{{ geoserver_source_zip }}"
