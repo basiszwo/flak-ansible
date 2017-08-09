@@ -1,0 +1,32 @@
+---
+- name: Add apt key for telegraf
+  apt_key: url=https://repos.influxdata.com/influxdb.key
+  when: telegraf_enabled
+  tags:
+    - stats
+
+- name: Add apt repo for influxdata
+  apt_repository: repo='deb https://repos.influxdata.com/ubuntu xenial stable'
+  when: telegraf_enabled
+  tags:
+    - stats
+
+- name: Install telegraf client
+  apt: name=telegraf state=present update_cache=yes
+  when: telegraf_enabled
+  tags:
+    - stats
+
+- name: Backup default telegraf.conf
+  command: cp /etc/telegraf/telegraf.conf /etc/telegraf/telegraf.conf.bak
+  when: telegraf_enabled
+  tags:
+    - stats
+
+- name: Add telegraf configuration
+  template: src=telegraf.conf.j2
+            dest=/etc/telegraf/telegraf.conf
+  notify: restart telegraf
+  when: telegraf_enabled
+  tags:
+    - stats
