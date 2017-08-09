@@ -9,7 +9,7 @@ t.b.d
 
 ### Requirements
 
-You need a digitalocean access key.
+You need a digitalocean access key to create droplets.
 
 
 ### Commands
