@@ -5,7 +5,7 @@
     command: droplet
     name: "{{ item }}"
     api_token: "{{ do_api_token }}"
-    size_id: "{{ do_size_id }}"
+    size_id: "{{ item.do_size_id | default(do_default_size_id) }}"
     region_id: "{{ do_region_id }}"
     image_id: "{{ do_image_id }}"
     wait_timeout: 500
