@@ -1,0 +1,51 @@
+---
+
+- name: Check if Geomesa is already downloaded to Master Server
+  remote_user: "{{ deploy_user }}"
+  stat:
+    path: "~/{{ geomesa_source_tar }}"
+  register: geomesa_download_exists
+  when:
+    - inventory_hostname == groups['accumulo-masters'][0]
+  tags: ['install']
+
+- name: Fetch Geomesa sources on Master Server
+  remote_user: "{{ deploy_user }}"
+  get_url:
+    url: "{{ geomesa_release_url }}"
+    dest: "~/{{ geomesa_source_tar }}"
+  when:
+    - inventory_hostname == groups['accumulo-masters'][0]
+    - geomesa_download_exists.stat.exists == False
+  tags: ['install']
+
+- name: Copy geomesa download to all Accumulo Tablet Servers
+  remote_user: "{{ deploy_user }}"
+  command: "scp ~/{{ geomesa_source_tar }} {{ deploy_user }}@{{ item }}:."
+  items:
+    - "{{ groups['accumulo-tablet-servers'] }}"
+  when:
+    - inventory_hostname == groups['accumulo-masters'][0]
+  tags: ['install']
+
+- name: Check if Geomesa dir already exists
+  remote_user: "{{ deploy_user }}"
+  stat:
+    path: "{{ geomesa_home }}"
+  register: geomesa_installed
+  tags: ['install']
+
+- name: Extract Geomesa download
+  remote_user: "{{ deploy_user }}"
+  unarchive:
+    src: "~/{{ geomesa_source_tar }}"
+    dest: "~/"
+    remote_src: True
+  when:
+    - geomesa_installed.stat.exists == False
+  tags: ['install']
+
+- name: Install Geomesa Accumulo runtime
+  remote_user: "{{ deploy_user }}"
+  command: "cp {{ geomesa_accumulo_runtime_jar }} {{ accumulo_home }}/lib/"
+  tags: ['install']

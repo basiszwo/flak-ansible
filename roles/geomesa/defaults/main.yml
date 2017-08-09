@@ -1,0 +1,15 @@
+---
+geomesa_version: "1.3.2"
+geomesa_source_dir: "geomesa-accumulo_2.11-{{ geomesa_version }}"
+geomesa_source_tar: "geomesa-accumulo-dist_2.11-{{ geomesa_version }}-bin.tar.gz"
+geomesa_release_url: "http://repo.locationtech.org/content/repositories/geomesa-releases/org/locationtech/geomesa/geomesa-accumulo-dist_2.11/{{ geomesa_version }}/{{ geomesa_source_tar }}"
+geomesa_home: "/home/{{ deploy_user }}/{{ geomesa_source_dir }}"
+
+geomesa_accumulo_runtime_jar: "{{ geomesa_home }}/dist/accumulo/geomesa-accumulo-distributed-runtime_2.11-{{ geomesa_version }}.jar"
+
+accumulo_version: "1.8.1"
+accumulo_home: "/home/{{ deploy_user }}/accumulo-{{ accumulo_version }}"
+
+# accumulo_api_version: "1.8"
+
+# hadoop_version: "2.7.3"
