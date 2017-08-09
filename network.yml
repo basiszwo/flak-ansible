@@ -1,0 +1,66 @@
+---
+- name: Prepare VMs for ansible and further usage
+  hosts: all
+  remote_user: root
+  gather_facts: no
+  tags: ['always']
+
+  # Ansible requires python2, which is not installed by default on Ubuntu Xenial
+  pre_tasks:
+    - raw: apt-get -y install python-minimal aptitude
+    # action: setup will gather facts after python2 has been installed
+    - action: setup
+
+- name: Tell VMs about their network
+  hosts: all
+  remote_user: root
+
+  vars:
+    network_host: flak.one
+
+  tasks:
+    - name: Remove 127.0.1.1 entry from /etc/hosts
+      lineinfile:
+        dest: /etc/hosts
+        regexp: "^127.0.1.1"
+        state: absent
+      tags: ["setup"]
+
+    - name: "Add entry /etc/hosts"
+      lineinfile:
+        dest: /etc/hosts
+        regexp: "{{ hostvars[item].inventory_hostname }}"
+        line: "{{ hostvars[item].ansible_default_ipv4.address }} {{ hostvars[item].inventory_hostname }} {{ hostvars[item].inventory_hostname_short }}"
+        state: present
+      with_items:
+        - "{{ groups['api'] }}"
+        - "{{ groups['kafka'] }}"
+        - "{{ groups['flink'] }}"
+        - "{{ groups['accumulo'] }}"
+      # when: item != inventory_hostname
+      tags: ["setup"]
+
+    - name: Add hosts entry for metrics host
+      lineinfile:
+        dest: /etc/hosts
+        regexp: "metrics.flak.one"
+        line: "138.68.74.62 metrics.flak.one metrics"
+        state: present
+      tags: ["setup"]
+
+    - name: "Clean /etc/hosts"
+      lineinfile:
+        dest: /etc/hosts
+        regexp: "{{ network_host }}$"
+        state: absent
+      with_items:
+        - "{{ groups['api'] }}"
+        - "{{ groups['kafka'] }}"
+        - "{{ groups['flink'] }}"
+        - "{{ groups['accumulo'] }}"
+      tags: ["clean"]
+
+    - debug: msg="Droplet info {{ hostvars[item] }}"
+      with_items:
+        - "{{ groups['api'] }}"
+      tags: ['debug']
